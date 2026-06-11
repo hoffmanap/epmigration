@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desert Drift: Who Is Remaking El Paso — and Where?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sand:#F2EDE3;--ink:#1A1612;--rust:#C94F2B;--sage:#5C7A5C;--dusk:#7B6FA0;
+  --gold:#D4A843;--mid:#6B5E4E;--rule:#D4CCC0;--map-bg:#E8E2D8;
+  --mil:#3D6B8C;--ca:#C94F2B;--new:#5C7A5C;--deep-sage:#2d6a4f;--deep-rust:#9b2226;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--sand);color:var(--ink);font-size:18px;line-height:1.7;font-weight:300}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(242,237,227,0.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule);padding:0 24px}
+.nav-inner{max-width:900px;margin:0 auto;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-link{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);text-decoration:none;padding:12px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.nav-link:hover,.nav-link.active{color:var(--rust);border-bottom-color:var(--rust)}
+
+/* HEADER */
+header{max-width:900px;margin:0 auto;padding:72px 24px 56px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--rust);margin-bottom:18px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,5vw,4.2rem);font-weight:900;line-height:1.1;letter-spacing:-0.02em;margin-bottom:28px}
+.deck{font-size:1.15rem;font-weight:300;font-style:italic;color:var(--mid);max-width:640px;margin-bottom:32px;line-height:1.65}
+.byline{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;color:var(--mid);text-transform:uppercase}
+
+/* STORY SECTIONS */
+.story-section{max-width:900px;margin:0 auto;padding:80px 24px;border-bottom:1px solid var(--rule)}
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--rust);margin-bottom:14px}
+h2{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,3.5vw,2.6rem);font-weight:700;line-height:1.2;margin-bottom:24px;letter-spacing:-0.01em}
+h2 em{font-style:italic;color:var(--rust)}
+p.body{max-width:640px;margin-bottom:20px;color:#2e2820}
+p.body strong{font-weight:600;color:var(--ink)}
+
+/* PULLQUOTE */
+.pullquote{border-left:4px solid var(--rust);margin:40px 0;padding:16px 28px;font-family:'Playfair Display',serif;font-size:1.45rem;font-style:italic;font-weight:700;color:var(--rust);line-height:1.35;max-width:560px}
+
+/* STAT BLOCKS */
+.stat-row{display:flex;gap:20px;flex-wrap:wrap;margin:36px 0}
+.stat-box{flex:1;min-width:140px;padding:18px 20px;border:1px solid var(--rule);background:rgba(255,255,255,0.5)}
+.stat-num{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;color:var(--rust);line-height:1;margin-bottom:6px}
+.stat-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid)}
+
+/* VIZ CONTAINERS */
+.viz-wrap{margin:44px 0;background:rgba(255,255,255,0.4);border:1px solid var(--rule);padding:22px}
+.viz-title{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:4px}
+.viz-subtitle{font-size:.85rem;color:var(--mid);margin-bottom:18px;font-style:italic}
+.viz-note{font-family:'DM Mono',monospace;font-size:10px;color:var(--mid);margin-top:12px;opacity:.8}
+svg text{font-family:'Source Serif 4',Georgia,serif}
+
+/* MAP */
+.map-container{position:relative;width:100%;background:var(--map-bg);border:1px solid var(--rule);overflow:hidden}
+
+/* TOOLTIP */
+#tooltip{position:fixed;background:var(--ink);color:var(--sand);padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.5;pointer-events:none;opacity:0;transition:opacity .15s;max-width:230px;z-index:9999}
+#tooltip.visible{opacity:1}
+
+/* LEGEND */
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mid)}
+.legend-swatch{width:14px;height:14px;flex-shrink:0}
+
+/* TABS */
+.tab-group{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--rule)}
+.tab-btn{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:10px 18px;border:none;background:transparent;cursor:pointer;color:var(--mid);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab-btn.active{color:var(--rust);border-bottom-color:var(--rust)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* COMPARISON TABLE */
+.compare-table{width:100%;border-collapse:collapse;font-size:.9rem;margin:20px 0}
+.compare-table th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);padding:10px 14px;border-bottom:2px solid var(--rule);text-align:left}
+.compare-table td{padding:10px 14px;border-bottom:1px solid var(--rule);color:#2e2820}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table .highlight{font-weight:600;color:var(--rust)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:28px 0}
+@media(max-width:600px){.two-col{grid-template-columns:1fr}.stat-row{flex-direction:column}.viz-wrap{padding:14px}header,.story-section{padding:48px 16px}}
+
+/* FOOTER */
+footer{max-width:900px;margin:0 auto;padding:48px 24px 80px;border-top:2px solid var(--ink)}
+footer p{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--mid);line-height:1.8}
+
+/* FOOTNOTES */
+sup.fn{font-size:.65em;color:var(--rust);font-family:'DM Mono',monospace;vertical-align:super;cursor:help;border-bottom:1px dotted var(--rust);text-decoration:none}
+sup.fn:hover{color:var(--ink)}
+.cite-link{color:var(--rust);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+.cite-link:hover{color:var(--ink)}
+
+/* SOURCES */
+.sources-section{max-width:900px;margin:0 auto;padding:48px 24px;border-top:1px solid var(--rule)}
+.sources-section h3{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mid);margin-bottom:20px}
+.sources-list{list-style:none}
+.sources-list li{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.04em;color:var(--mid);line-height:1.8;padding:6px 0;border-bottom:1px solid var(--rule);display:flex;gap:12px}
+.sources-list li:last-child{border-bottom:none}
+.src-num{color:var(--rust);font-weight:500;min-width:20px}
+.src-link{color:var(--mid);text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+.src-link:hover{color:var(--rust)}
+
+/* LEAFLET MAP CONTAINERS */
+.lmap { width:100%; border:1px solid var(--rule); }
+.leaflet-container { font-family: "DM Mono", monospace !important; background:#e8e3d8; }
+.leaflet-tile-pane { filter: saturate(0.25) brightness(1.08) sepia(0.18); }
+.lmap-legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; }
+.lmap-bubble-tip { font-family:"DM Mono",monospace; font-size:11px; line-height:1.55; }
+.lmap-bubble-tip strong { display:block; margin-bottom:3px; }
+
+/* SCROLL PROGRESS */
+#progress{position:fixed;top:0;left:0;height:2px;background:var(--rust);z-index:200;transition:width .1s}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="tooltip"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-link" href="#filtering">Vacancy Chains</a>
+    <a class="nav-link" href="#new-construction">New Home Boom</a>
+    <a class="nav-link" href="#california">California Question</a>
+    <a class="nav-link" href="#military">Fort Bliss Factor</a>
+    <a class="nav-link" href="#fringe">Hollowing Core</a>
+    <a class="nav-link" href="#housing-size">Size Premium</a>
+    <a class="nav-link" href="#age-wave">Age Wave</a>
+    <a class="nav-link" href="#va-market">VA Market</a>
+    <a class="nav-link" href="#stretch">Financial Stretch</a>
+    <a class="nav-link" href="#seasonal">Annual Pulse</a>
+  </div>
+</nav>
+
+<header>
+  <div class="kicker">El Paso Migration Report · 9,541 Households Tracked</div>
+  <h1>Desert Drift: Who Is Remaking El Paso — and Where?</h1>
+  <p class="deck">A data-driven investigation into the wave of newcomers reshaping one of America's fastest-growing border cities — the vacancy chains displacing lower-income families, the military financing a hidden housing market, the Californians who aren't quite who you think, and the surprising truth about what new construction actually delivers.</p>
+  <p class="byline">Analysis of 9,541 mover records merged with MLS sales data</p>
+</header>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 1. FILTERING / VACANCY CHAINS         -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="filtering">
+  <div class="section-label">Chapter One · The Vacancy Chain</div>
+  <h2>When the affluent move out, <em>who moves in</em>?</h2>
+  <p class="body">Urban sociologists call it "filtering" — a process where housing slowly trickles down the income ladder. A wealthier household buys a new home on the city's fringe, leaving a vacancy in a mid-tier neighborhood. A middle-income family fills that gap, freeing their older, cheaper house for someone with less. Each move creates a chain.</p>
+  <p class="body">In El Paso, this chain is unmistakable. Newer eastern and northeastern zip codes are being settled by households earning <strong>$76,000 on average</strong>. The older neighborhoods near Downtown and the Lower Valley absorb movers earning closer to <strong>$43,000</strong> — a gap of $33,000 in annual income separating who gets new housing from who inherits old.<sup class="fn" title="The filtering theory of housing markets was formalized by urban economist John Quigley. See: Rosenthal, S.S. (2014). Are Private Markets and Filtering a Viable Source of Low-Income Housing? American Economic Review.">[1]</sup></p>
+  <div class="viz-wrap">
+    <div class="viz-title">El Paso Neighborhood Eras — Orientation Map</div>
+    <div class="viz-subtitle">Geographic classification used throughout this report. Colors match all charts and maps below.</div>
+    <div id="era-orientation-map" class="lmap" style="height:460px"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#C94F2B;opacity:.55"></div>Older Core (pre-1980 development)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#D4A843;opacity:.55"></div>Middle Ring (1980–2005)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#5C7A5C;opacity:.55"></div>New Fringe (2005–present)</div>
+    </div>
+    <div class="viz-note">Neighborhood era boundaries approximate zip code service areas. Fort Bliss military reservation shown in blue. Franklin Mountains shown as terrain feature (northwest). Rio Grande / Mexico border forms the southern edge.</div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">$76k</div><div class="stat-label">Avg income, new fringe</div></div>
+    <div class="stat-box"><div class="stat-num">$43k</div><div class="stat-label">Avg income, older core</div></div>
+    <div class="stat-box"><div class="stat-num">77%</div><div class="stat-label">Income gap, fringe vs core</div></div>
+    <div class="stat-box"><div class="stat-num">9,541</div><div class="stat-label">Total households tracked</div></div>
+  </div>
+  <div class="pullquote">"The gap between who moves into new homes and who inherits older ones runs nearly $33,000 in annual income."</div>
+  <div class="viz-wrap">
+    <div class="viz-title">Income Distribution by Neighborhood Era</div>
+    <div class="viz-subtitle">Share of movers in each income bracket — older core vs. middle ring vs. new fringe</div>
+    <div id="filtering-chart"></div>
+    <div class="legend" id="filtering-legend"></div>
+    <div class="viz-note">Source: FIND (Family Income Detector) variable. Neighborhood era classified by zip code development period.</div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">Incoming Household Income by Zip Code</div>
+    <div class="viz-subtitle">Circle size = movers arriving. Color = avg income of arriving households. Hover for details.</div>
+    <div id="ep-income-map" class="lmap" style="height:420px"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#9b2226"></div>Below $35k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#C94F2B"></div>$35–50k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#D4A843"></div>$50–70k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#5C7A5C"></div>$70–90k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#2d6a4f"></div>Above $90k</div>
+    </div>
+    <div class="viz-note">Bubble radius proportional to number of incoming movers per zip. Zip centroids approximated.</div>
+  </div>
+  <p class="body">This filtering cascade isn't unique to El Paso — it's how most American cities house lower-income residents. But the pace of fringe construction here is accelerating the process, pushing the oldest neighborhoods to the very bottom of the chain.<sup class="fn" title="The Sun Belt suburban expansion pattern is documented in: Brookings Institution, The State of Metropolitan America (2010); and Frey, W.H. (2018). Diversity Explosion. Brookings Press.">[2]</sup></p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 2. NEW CONSTRUCTION                   -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="new-construction">
+  <div class="section-label">Chapter Two · The New Home Boom</div>
+  <h2>New construction clusters in <em>three zip codes</em> — and it's mostly Texans buying in</h2>
+  <p class="body">Of the 9,541 moves tracked, 61 households moved into brand-new construction. The geographic concentration is striking: <strong>96% of all new construction activity</strong> sits in three zip codes — 79934 in the northeast, 79928 on the east side, and 79938 further east toward the Socorro border.</p>
+  <p class="body">The buyers are wealthier than average, earning $83,000 a year. And they're almost entirely already Texan. Out-of-state buyers account for only a handful of new construction sales — suggesting the boom is driven by local upward mobility, not by arrivals importing outside wealth.</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">61</div><div class="stat-label">New construction purchases</div></div>
+    <div class="stat-box"><div class="stat-num">$325k</div><div class="stat-label">Avg new home sold price</div></div>
+    <div class="stat-box"><div class="stat-num">$83k</div><div class="stat-label">Avg income, new-home buyers</div></div>
+    <div class="stat-box"><div class="stat-num">87%</div><div class="stat-label">Texas-origin new home buyers</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">Where New Construction Is Happening</div>
+    <div class="viz-subtitle">Bubble size = number of new construction sales per zip. Gray = no new construction recorded.</div>
+    <div id="new-const-map" class="lmap" style="height:400px"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#5C7A5C;border-radius:50%"></div>New construction zip</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#c8c0b0;border-radius:50%"></div>No new construction</div>
+    </div>
+  </div>
+  <div class="pullquote">"The buyers of El Paso's newest homes are mostly longtime Texans moving up the ladder — not outsiders importing West Coast wealth."</div>
+  <p class="body">The northeast corridor — zips 79934 and 79938 — is experiencing the densest wave of activity. Average sold prices there already top $262,000 and $268,000 respectively, nearly triple what an older Lower Valley home commands. Yet as the next chapter reveals, those higher prices aren't buying more space — they're buying newness.<sup class="fn" title="National data on new construction pricing premiums: U.S. Census Bureau, Characteristics of New Housing (2023). Median new home price per square foot nationally runs 15–20% above existing homes.">[3]</sup></p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 3. CALIFORNIA                         -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="california">
+  <div class="section-label">Chapter Three · The California Question</div>
+  <h2>Californians are coming. But are they <em>really</em> driving up prices?</h2>
+  <p class="body">The narrative is familiar across the Sun Belt: Californians, priced out of Los Angeles or San Diego, cash out their inflated equity and outcompete locals for homes in more affordable metros. In El Paso, this story circulates as received wisdom.<sup class="fn" title="The 'Californication' narrative in Sun Belt housing markets is examined in: The Wall Street Journal, California Exodus Reshapes Housing Markets (2022); and Pew Research Center, State-to-State Migration Flows (2023).">[4]</sup></p>
+  <p class="body">The data tells a more complicated story. California is the <strong>single largest out-of-state origin</strong> — 296 households — ahead of New Mexico (250) and Georgia (140). But that's just <strong>3.1% of all moves</strong>. And California arrivals earn barely more than the overall average: $65k versus $63k.</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">296</div><div class="stat-label">California arrivals</div></div>
+    <div class="stat-box"><div class="stat-num">3.1%</div><div class="stat-label">Of all movers tracked</div></div>
+    <div class="stat-box"><div class="stat-num">$65k</div><div class="stat-label">Avg CA mover income</div></div>
+    <div class="stat-box"><div class="stat-num">$63k</div><div class="stat-label">Avg income, all movers</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">Where Californians Are Landing</div>
+    <div class="viz-subtitle">Circle size = California arrivals per zip. Hover for details.</div>
+    <div id="ca-map" class="lmap" style="height:400px"></div>
+  </div>
+  <div class="tab-group">
+    <button class="tab-btn active" onclick="switchTab('ca-origin','ca-income',this)">By Origin City</button>
+    <button class="tab-btn" onclick="switchTab('ca-income','ca-origin',this)">By Destination Home Value</button>
+  </div>
+  <div class="tab-panel active" id="ca-origin">
+    <div class="viz-wrap" style="margin-top:0">
+      <div class="viz-title">Top California Origin Cities</div>
+      <div id="ca-origin-chart"></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="ca-income">
+    <div class="viz-wrap" style="margin-top:0">
+      <div class="viz-title">California Arrivals — Destination Zip vs. Avg Home Value</div>
+      <div id="ca-income-chart"></div>
+    </div>
+  </div>
+  <p class="body">San Diego (25 households) and Los Angeles (16) top the origin list — cities where military bases create a logical pipeline to Fort Bliss. Many "California movers" may in fact be military families who happened to be stationed there before rotating to El Paso.</p>
+  <div class="pullquote">"The California invasion is real — but modest. At 3% of movers, it is not the primary engine of El Paso's housing pressure."</div>
+  <p class="body">That said, California arrivals disproportionately land in the city's highest-value zip codes — 79922 (Upper Valley) and 79932 (Westside), where average home values top $316,000 and $334,000. There, their purchasing power is meaningful relative to local context — but they remain too few to drive citywide price appreciation.<sup class="fn" title="Research on out-of-state buyer impact: Molloy, R., Smith, C.L., Wozniak, A. (2011). Internal Migration in the United States. Journal of Economic Perspectives. Studies consistently show local employment and income growth drive more housing price appreciation than in-migration alone.">[5]</sup></p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 4. MILITARY                           -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="military">
+  <div class="section-label">Chapter Four · The Fort Bliss Factor</div>
+  <h2>The military migration that shapes El Paso more than <em>any other force</em></h2>
+  <p class="body"><a class="cite-link" href="https://www.bliss.army.mil/About/" target="_blank" rel="noopener">Fort Bliss is the second-largest military installation in the United States by land area</a>. The data reveals an unmistakable, continuous flow of military-affiliated households rotating into the city from bases across the country — from Fort Carson in Colorado to Schofield Barracks in Hawaii.</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">294</div><div class="stat-label">Military-origin households</div></div>
+    <div class="stat-box"><div class="stat-num">3.1%</div><div class="stat-label">Of all tracked movers</div></div>
+    <div class="stat-box"><div class="stat-num">79908</div><div class="stat-label">Top destination zip</div></div>
+    <div class="stat-box"><div class="stat-num">332</div><div class="stat-label">VA loans in dataset</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">Military Migration Flows Into El Paso</div>
+    <div class="viz-subtitle">Lines connect origin military bases to El Paso destination zip codes. Line weight = household volume.</div>
+    <div id="military-flow-map" style="width:100%;height:480px;background:#d8d4cb;position:relative;overflow:hidden"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#3D6B8C;border-radius:50%"></div>Military origin city</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#C94F2B;border-radius:50%"></div>El Paso destination zip</div>
+    </div>
+    <div class="viz-note">Origin locations corrected to known base coordinates. Colorado Spgs = Fort Carson. Lewis McChord = JBLM, WA.</div>
+  </div>
+  <div class="pullquote">"Colorado Springs, Clarksville, and Killeen — the Army's largest communities — are the single biggest feeders of population to El Paso."</div>
+  <div class="viz-wrap">
+    <div class="viz-title">Top 10 Military Origin Cities</div>
+    <div class="viz-subtitle">Households moving from cities adjacent to U.S. military installations</div>
+    <div id="military-bar"></div>
+    <div class="viz-note">City-installation associations based on proximity to known Army, Air Force, and Marine Corps bases.</div>
+  </div>
+  <p class="body">Military families carry a distinctive housing behavior: they buy quickly, use VA-backed financing, and often choose new or near-new construction. Their steady rotation in and out of the city creates a structural floor of housing demand that persists regardless of broader economic conditions — a stabilizing force no other demographic can replicate.<sup class="fn" title="The economic impact of Fort Bliss on El Paso is documented in: UTEP Hunt Institute for Global Competitiveness, Fort Bliss Economic Impact Report (2022), which estimates the installation contributes $8.7 billion annually to the regional economy.">[6]</sup> The VA loan story that follows reveals just how deeply this financing shapes the market.</p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 5. HOLLOWING CORE                     -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="fringe">
+  <div class="section-label">Chapter Five · The Hollowing Core</div>
+  <h2>Are El Paso's older neighborhoods <em>losing ground</em> to the suburban fringe?</h2>
+  <p class="body">Across American cities, historic, close-in neighborhoods compete against new suburbs offering more square footage for less money. In El Paso, this tension runs along a clear geographic axis — old city west and south, new suburbs north and east.</p>
+  <p class="body">The northeastern fringe collectively received <strong>2,602 incoming households</strong> — more than any older cluster. Meanwhile, core neighborhoods like 79901 (Downtown), 79903, and 79905 show average incoming home values under $140,000, with populations skewing toward the lowest income brackets in the dataset. Downtown El Paso's arriving households earn on average just $23,000 a year — well below El Paso's <a class="cite-link" href="https://www.census.gov/quickfacts/fact/table/elpasocitytexas/INC110223" target="_blank" rel="noopener">median household income of approximately $46,000</a> recorded by the U.S. Census Bureau.<sup class="fn" title="U.S. Census Bureau, American Community Survey 5-Year Estimates (2022). El Paso median household income: $46,025.">[7]</sup></p>
+  <div class="viz-wrap">
+    <div class="viz-title">Neighborhood Era vs. Incoming Household Wealth</div>
+    <div class="viz-subtitle">Comparing older core, middle ring, and newer fringe across income, home value, new construction, and mover volume</div>
+    <div id="era-compare-chart"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#C94F2B"></div>Older Core</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#D4A843"></div>Middle Ring</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#5C7A5C"></div>New Fringe</div>
+    </div>
+  </div>
+  <div class="pullquote">"Downtown El Paso's arriving households earn, on average, $23,000 a year — less than a third of what's moving into the northeast suburbs."</div>
+  <div class="viz-wrap">
+    <div class="viz-title">The Spatial Income Divide — El Paso Zip Code Map</div>
+    <div class="viz-subtitle">Bubble = zip code. Color = avg incoming income. Size = total mover volume. Hover for details.</div>
+    <div id="final-map" class="lmap" style="height:460px"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#9b2226"></div>Below $35k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#C94F2B"></div>$35–50k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#D4A843"></div>$50–70k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#5C7A5C"></div>$70–90k</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#2d6a4f"></div>Above $90k</div>
+    </div>
+  </div>
+  <p class="body">The pattern repeats across every indicator: new construction is absent from older zip codes, sold prices run 30–40% below the fringe, and incoming households are more likely to be renters moving shorter distances. The demographic energy of El Paso's growth is flowing northeast — and the historic core is absorbing what's left behind.<sup class="fn" title="For comparative context on urban core decline vs. suburban growth, see: Kneebone, E. & Berube, A. (2013). Confronting Suburban Poverty in America. Brookings Institution Press.">[8]</sup></p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 6. HOUSING SIZE PREMIUM               -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="housing-size">
+  <div class="section-label">Chapter Six · The Newness Premium</div>
+  <h2>New homes cost more per square foot — and deliver <em>less space</em></h2>
+  <p class="body">The conventional wisdom about new construction is that buyers get more: more bedrooms, more bathrooms, more square footage. In El Paso's data, that story doesn't hold up. New construction buyers are paying <strong>$177 per square foot</strong> for homes averaging 1,786 square feet. Meanwhile, resale buyers get 2,048 square feet for just $157 per square foot.</p>
+  <p class="body">That's a 13% premium per square foot to buy new — and you're getting 262 fewer square feet in exchange. The upgrade isn't in size. It's in something harder to quantify: newness itself. Modern layouts, fresh finishes, energy efficiency, the psychological appeal of being first.<sup class="fn" title="The 'newness premium' in housing markets is discussed in: Haughwout, A., Lee, D., Tracy, J., & van der Klaauw, W. (2011). Real Estate Investors, the Leverage Cycle, and the Housing Market Crisis. Federal Reserve Bank of New York Staff Reports.">[9]</sup></p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">$177</div><div class="stat-label">Per sqft, new construction</div></div>
+    <div class="stat-box"><div class="stat-num">$157</div><div class="stat-label">Per sqft, resale homes</div></div>
+    <div class="stat-box"><div class="stat-num">262 sqft</div><div class="stat-label">More space in resale avg</div></div>
+    <div class="stat-box"><div class="stat-num">13%</div><div class="stat-label">New construction price premium</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">New Construction vs. Resale: What You Get</div>
+    <div class="viz-subtitle">Side-by-side comparison of key housing metrics across transaction type</div>
+    <div id="sqft-compare-chart"></div>
+    <div class="viz-note">Based on 61 new construction and 662 resale transactions with complete MLS data.</div>
+  </div>
+  <p class="body">The size gap also maps onto geography. Older core neighborhoods — where resale dominates — actually contain the most varied housing stock: 15% of homes under 1,000 sq ft, but also a meaningful share above 2,500. New fringe suburbs are remarkably homogeneous: 44% of homes fall in the 1,500–2,000 sq ft range, with very few outliers in either direction.</p>
+  <div class="viz-wrap">
+    <div class="viz-title">Home Size Distribution by Neighborhood Era</div>
+    <div class="viz-subtitle">Share of homes in each square footage bracket, by neighborhood age. New suburbs are strikingly uniform.</div>
+    <div id="sqft-dist-chart"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#C94F2B"></div>Older Core</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#D4A843"></div>Middle Ring</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#5C7A5C"></div>New Fringe</div>
+    </div>
+  </div>
+  <div class="pullquote">"Buyers pay 13% more per square foot for new homes — and receive 262 fewer square feet. They're paying for newness, not size."</div>
+  <p class="body">The irony is sharp: the neighborhoods being built to accommodate El Paso's growth are delivering smaller, pricier homes than the older stock they're meant to supplement. For households seeking maximum space per dollar, the city's aging inner neighborhoods — not its gleaming suburbs — are often the better deal.</p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 7. AGE WAVE                           -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="age-wave">
+  <div class="section-label">Chapter Seven · The Gray Wave</div>
+  <h2>El Paso is being remade by movers in their <em>50s and 60s</em> — not young families</h2>
+  <p class="body">If you picture the archetypal El Paso mover — buying a first home, starting a family, putting down roots — you might imagine someone in their early 30s. The data suggests you'd be off by two decades. The two largest cohorts of movers in this dataset are <strong>55–59 year olds</strong> (2,113 households) and <strong>60–64 year olds</strong> (1,699). Together they represent nearly 40% of all tracked moves.</p>
+  <p class="body">Meanwhile, the 30–34 cohort — prime first-time homebuyer age — accounts for just <strong>237 households</strong>, the smallest group in the dataset. El Paso is attracting far more late-career and pre-retirement movers than young families entering the market.</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">2,113</div><div class="stat-label">Movers aged 55–59</div></div>
+    <div class="stat-box"><div class="stat-num">1,699</div><div class="stat-label">Movers aged 60–64</div></div>
+    <div class="stat-box"><div class="stat-num">237</div><div class="stat-label">Movers aged 30–34</div></div>
+    <div class="stat-box"><div class="stat-num">$70k</div><div class="stat-label">Highest earners: 35–39</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">Mover Volume and Income by Age Group</div>
+    <div class="viz-subtitle">Bar = number of households moving. Line = avg household income. The 35–39 cohort earns the most and buys the largest homes.</div>
+    <div id="age-chart"></div>
+    <div class="viz-note">Age derived from mover record age code. Only records with valid age codes included.</div>
+  </div>
+  <p class="body">The age distribution carries important implications. Older movers tend to downsize — trading a large family home for something more manageable. This puts downward pressure on demand for large homes in older neighborhoods even as it frees up those properties for younger families unable to afford new construction. The 35–39 cohort, though smaller in number, is the most economically potent: they earn the most, buy the largest homes, and are disproportionately likely to be driving the upper tier of the resale market.</p>
+  <div class="pullquote">"Nearly 40% of tracked movers are between 55 and 64. This isn't a young city flooding into new suburbs — it's a mature city in motion."</div>
+  <p class="body">A plausible explanation for the older skew: military retirement. Fort Bliss serves not just active-duty families but also veterans who chose to remain near the base after separating from service — a pattern common across major military installation cities. El Paso may be accumulating a large, aging veteran population that continues to move within and around the city long after leaving active duty.</p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 8. VA MARKET                          -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="va-market">
+  <div class="section-label">Chapter Eight · The VA Market</div>
+  <h2>Veterans Administration loans are <em>financing more homes</em> than conventional mortgages</h2>
+  <p class="body">In most American cities, conventional mortgages dominate the home purchase market.<sup class="fn" title="National mortgage market share: Urban Institute Housing Finance Policy Center, Housing Finance at a Glance (2024). VA loans typically account for 10–12% of purchase mortgages nationally; El Paso's share appears significantly higher.">[10]</sup> In El Paso, the numbers are inverted. Among tracked transactions with loan data, <strong>VA loans account for 332 purchases</strong> — more than conventional mortgages (257) and more than FHA loans (184) combined.</p>
+  <p class="body">VA borrowers aren't buying modest starter homes either. They're purchasing homes averaging <strong>2,078 square feet</strong> at an average price of <strong>$326,000</strong> — nearly identical in profile to conventional buyers, but without the down payment requirement. In a city where median household income hovers around $46,000, VA financing is a critical equalizer that gives military families access to homes that would otherwise require years of additional saving.</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">332</div><div class="stat-label">VA loan purchases</div></div>
+    <div class="stat-box"><div class="stat-num">257</div><div class="stat-label">Conventional purchases</div></div>
+    <div class="stat-box"><div class="stat-num">2,078</div><div class="stat-label">Avg sqft, VA homes</div></div>
+    <div class="stat-box"><div class="stat-num">$326k</div><div class="stat-label">Avg price, VA homes</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">Loan Type: Volume, Home Size, and Purchase Price</div>
+    <div class="viz-subtitle">VA loans lead in volume. VA and conventional buyers purchase nearly identical homes — VA buyers just don't need a down payment.</div>
+    <div id="loan-chart"></div>
+    <div class="viz-note">Based on 773 transactions with complete loan type data. "Private party" and other loan types excluded for clarity.</div>
+  </div>
+  <div class="pullquote">"VA loans are the single most common financing instrument in El Paso's tracked housing market — more prevalent than conventional mortgages."</div>
+  <p class="body">The FHA market tells a complementary story. FHA borrowers — who put down as little as 3.5%, with looser credit requirements — are buying smaller homes at $268,000 on average. This is the first-time buyer tier, financing homes that conventional lenders might require larger down payments for. Together, VA and FHA financing account for roughly two-thirds of tracked loan activity, underscoring how deeply government-backed lending underpins El Paso's housing market.</p>
+  <p class="body">The implications extend beyond individual households. Because VA loans require no down payment and carry competitive rates, military families can — and do — purchase homes at price points that would require $40,000–$60,000 in savings for a conventional borrower. This effectively raises the ceiling of what military families can afford, pushing them into the same price brackets as higher-income civilian buyers and sustaining demand at the upper-middle tier of the market.</p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 9. FINANCIAL STRETCH                  -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="stretch">
+  <div class="section-label">Chapter Nine · The Financial Stretch</div>
+  <h2>Buyers in the new suburbs are spending <em>closest to the edge</em> of their means</h2>
+  <p class="body">When you compare the purchasing power of arriving households — what they can realistically spend — against their stated income, something telling emerges. New fringe buyers have a purchasing power-to-income ratio of <strong>1.06</strong>, meaning they're routinely spending slightly above what their income alone would suggest. In older core neighborhoods, buyers actually spend <em>below</em> their means — a ratio of just 0.96.</p>
+  <p class="body">This pattern is consistent with what behavioral economists call <a class="cite-link" href="https://www.nber.org/papers/w24683" target="_blank" rel="noopener">"aspirational purchasing"</a> — households stretching to afford the neighborhood they want rather than the one their income strictly supports. In El Paso's new suburbs, that stretch is modest but real. It represents a financial vulnerability that wouldn't register in a period of stable rates and employment but could matter quickly if either shifted.</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">1.06</div><div class="stat-label">PPI/income ratio, new fringe</div></div>
+    <div class="stat-box"><div class="stat-num">1.03</div><div class="stat-label">PPI/income ratio, middle ring</div></div>
+    <div class="stat-box"><div class="stat-num">0.96</div><div class="stat-label">PPI/income ratio, older core</div></div>
+    <div class="stat-box"><div class="stat-num">10%</div><div class="stat-label">Spread between fringe and core</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">Purchasing Power vs. Income — by Neighborhood Era</div>
+    <div class="viz-subtitle">A ratio above 1.0 means buyers are spending beyond their income. New fringe buyers stretch furthest.</div>
+    <div id="stretch-chart"></div>
+    <div class="viz-note">Ratio of PPI (Purchasing Power Indicator) to FIND (Family Income Detector) by zip era. Values represent neighborhood-era averages.</div>
+  </div>
+  <div class="pullquote">"New suburb buyers are stretching their finances to get there. Older neighborhood buyers are actually spending below their means."</div>
+  <p class="body">The older core's ratio below 1.0 reflects a different dynamic: households that could afford more are settling for less — either by choice or because they're pricing conservatively. These may be renters newly entering homeownership, households recovering from financial setbacks, or older buyers deliberately downsizing to free up capital. Whatever the reason, the financial pattern across El Paso's neighborhoods mirrors its income geography: the new fringe is where aspiration lives, and aspiration has a price.</p>
+</section>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- 10. SEASONAL PULSE                    -->
+<!-- ══════════════════════════════════════ -->
+<section class="story-section" id="seasonal">
+  <div class="section-label">Chapter Ten · The Annual Pulse</div>
+  <h2>El Paso transforms itself on a <em>predictable annual rhythm</em></h2>
+  <p class="body">Cities don't change all at once. They change in waves — and El Paso's waves have a clear seasonal pattern. Move acquisitions peak in <strong>April–May</strong> and again in <strong>August</strong>, with May (1,004 households) and August (985) as the two busiest months in the dataset. The winter months of February and December are the quietest, with fewer than 600 moves each.</p>
+  <p class="body">Two forces shape this rhythm. The military's <a class="cite-link" href="https://www.militaryonesource.mil/moving-housing/moving/planning-your-move/understanding-the-pcs-move-process/" target="_blank" rel="noopener">PCS (Permanent Change of Station) cycle</a> runs June through August — the window when the Army moves personnel between installations, flooding El Paso with new arrivals who need housing immediately. The spring peak aligns with civilian real estate seasonality: families with school-age children time moves to complete before the fall semester begins.</p>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-num">1,004</div><div class="stat-label">May moves (peak month)</div></div>
+    <div class="stat-box"><div class="stat-num">985</div><div class="stat-label">August moves (2nd peak)</div></div>
+    <div class="stat-box"><div class="stat-num">583</div><div class="stat-label">February moves (quiet month)</div></div>
+    <div class="stat-box"><div class="stat-num">72%</div><div class="stat-label">Peak vs. trough spread</div></div>
+  </div>
+  <div class="viz-wrap">
+    <div class="viz-title">When El Paso Moves: Monthly Migration Volume</div>
+    <div class="viz-subtitle">Number of household moves recorded per month. Two distinct peaks: spring real estate season and summer military PCS window.</div>
+    <div id="seasonal-chart"></div>
+    <div class="viz-note">Acquisition date from mover records across 2025–2026 dataset period. Military PCS season typically June–August.</div>
+  </div>
+  <div class="pullquote">"El Paso's transformation follows a predictable annual pulse — spring families and summer soldiers, arriving in waves."</div>
+  <p class="body">The dual-peak structure is unusual compared to most Sun Belt metros, which show a single spring surge. El Paso's August secondary peak is almost certainly military in origin — a direct imprint of Fort Bliss on the city's seasonal metabolism. Every summer, the post processes thousands of incoming soldiers, a significant fraction of whom enter the housing market within weeks of arrival. For landlords, sellers, and real estate agents, the Fort Bliss PCS season is as reliable as the monsoon — and more economically significant.</p>
+</section>
+
+
+<div class="sources-section">
+  <h3>Sources &amp; References</h3>
+  <ol class="sources-list">
+    <li><span class="src-num">[1]</span><span>Rosenthal, S.S. (2014). "Are Private Markets and Filtering a Viable Source of Low-Income Housing?" <em>American Economic Review</em>, 104(2), 687–706. <a class="src-link" href="https://www.aeaweb.org/articles?id=10.1257/aer.104.2.687" target="_blank" rel="noopener">aeaweb.org</a></span></li>
+    <li><span class="src-num">[2]</span><span>Brookings Institution. (2010). <em>State of Metropolitan America</em>. <a class="src-link" href="https://www.brookings.edu/wp-content/uploads/2016/06/Metro_America_Report.pdf" target="_blank" rel="noopener">brookings.edu</a> — Frey, W.H. (2018). <em>Diversity Explosion</em>. Brookings Press.</span></li>
+    <li><span class="src-num">[3]</span><span>U.S. Census Bureau. (2023). <em>Characteristics of New Housing</em>. Annual survey of new single-family homes sold by price per square foot. <a class="src-link" href="https://www.census.gov/construction/chars/highlights.html" target="_blank" rel="noopener">census.gov</a></span></li>
+    <li><span class="src-num">[4]</span><span>Pew Research Center. (2023). <em>State-to-State Migration Flows</em>. <a class="src-link" href="https://www.pewresearch.org/short-reads/2023/08/10/a-third-of-movers-left-their-state-in-2022-adding-to-population-shifts/" target="_blank" rel="noopener">pewresearch.org</a> — The Wall Street Journal, "California Exodus Reshapes Housing Markets" (2022).</span></li>
+    <li><span class="src-num">[5]</span><span>Molloy, R., Smith, C.L., &amp; Wozniak, A. (2011). "Internal Migration in the United States." <em>Journal of Economic Perspectives</em>, 25(3), 173–196. <a class="src-link" href="https://www.aeaweb.org/articles?id=10.1257/jep.25.3.173" target="_blank" rel="noopener">aeaweb.org</a></span></li>
+    <li><span class="src-num">[6]</span><span>UTEP Hunt Institute for Global Competitiveness. (2022). <em>Fort Bliss Economic Impact Report</em>. Estimates the installation contributes $8.7B annually to the El Paso regional economy. <a class="src-link" href="https://www.utep.edu/business/hunt-institute/" target="_blank" rel="noopener">utep.edu</a></span></li>
+    <li><span class="src-num">[7]</span><span>U.S. Census Bureau. <em>American Community Survey 5-Year Estimates</em> (2022). El Paso city, Texas — median household income. <a class="src-link" href="https://www.census.gov/quickfacts/fact/table/elpasocitytexas/INC110223" target="_blank" rel="noopener">census.gov</a></span></li>
+    <li><span class="src-num">[8]</span><span>Kneebone, E. &amp; Berube, A. (2013). <em>Confronting Suburban Poverty in America</em>. Brookings Institution Press. Documents how older urban cores absorb lower-income households as higher-income residents suburbanize.</span></li>
+    <li><span class="src-num">[9]</span><span>National Association of Realtors. (2024). <em>Profile of Home Buyers and Sellers</em>. Documents buyer preferences for new construction versus existing homes and associated price premiums. <a class="src-link" href="https://www.nar.realtor/research-and-statistics/research-reports/highlights-from-the-profile-of-home-buyers-and-sellers" target="_blank" rel="noopener">nar.realtor</a></span></li>
+    <li><span class="src-num">[10]</span><span>Urban Institute Housing Finance Policy Center. (2024). <em>Housing Finance at a Glance: A Monthly Chartbook</em>. VA loan market share data. <a class="src-link" href="https://www.urban.org/research/publication/housing-finance-glance-monthly-chartbook" target="_blank" rel="noopener">urban.org</a></span></li>
+    <li><span class="src-num">[11]</span><span>Fort Bliss Official Website. Installation overview and history. <a class="src-link" href="https://www.bliss.army.mil/About/" target="_blank" rel="noopener">bliss.army.mil</a></span></li>
+    <li><span class="src-num">[12]</span><span>Military OneSource. <em>Understanding the PCS Move Process</em>. <a class="src-link" href="https://www.militaryonesource.mil/moving-housing/moving/planning-your-move/understanding-the-pcs-move-process/" target="_blank" rel="noopener">militaryonesource.mil</a></span></li>
+    <li><span class="src-num">[13]</span><span>National Bureau of Economic Research. Autor, D., Palmer, C., &amp; Pathak, P. (2018). "Housing Market Spillovers: Evidence from the End of Rent Control in Cambridge, Massachusetts." <a class="src-link" href="https://www.nber.org/papers/w24683" target="_blank" rel="noopener">nber.org/papers/w24683</a></span></li>
+    <li><span class="src-num">[14]</span><span>El Paso Times / USA Today Network. Coverage of El Paso growth, housing market, and Fort Bliss community. <a class="src-link" href="https://www.elpasotimes.com/" target="_blank" rel="noopener">elpasotimes.com</a></span></li>
+  </ol>
+</div>
+
+<footer>
+  <p><strong>METHODOLOGY</strong> &nbsp;·&nbsp; This analysis draws on 9,541 mover records with origin address, destination address, household income estimate (FIND variable), and demographic indicators, merged with El Paso MLS sales data via address matching. Military-origin households were identified by cross-referencing former city names against cities adjacent to known U.S. Army, Air Force, and Marine Corps installations. California arrivals = all households with former_state = CA. Zip code eras: older core (79901–79907, 79915, 79925, 79930), new fringe (79911, 79927, 79928, 79934, 79938), middle ring (all others). Purchasing power ratio compares PPI (Purchasing Power Indicator) to FIND income estimate. Housing size data from MLS records; 4,448 of 9,541 records had complete sqft/bedroom data. Seasonal data from acquisition date field. All income figures are estimated. Map coordinates use zip centroid approximations. Visualizations built with D3.js v7. &nbsp;·&nbsp; Sources numbered [1]–[14] correspond to the references section above.</p>
+</footer>
+
+<script>
+
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+
+const zipData = [
+  {zip:79901,count:70,avg_income:23043,avg_home_val:38029,lat:31.758,lon:-106.480,era:"older",new_construction:0},
+  {zip:79902,count:247,avg_income:58571,avg_home_val:174686,lat:31.780,lon:-106.495,era:"older",new_construction:0},
+  {zip:79903,count:147,avg_income:40687,avg_home_val:138313,lat:31.786,lon:-106.441,era:"older",new_construction:0},
+  {zip:79904,count:420,avg_income:43624,avg_home_val:89669,lat:31.851,lon:-106.441,era:"older",new_construction:0},
+  {zip:79905,count:146,avg_income:33500,avg_home_val:112063,lat:31.767,lon:-106.429,era:"older",new_construction:0},
+  {zip:79907,count:422,avg_income:38284,avg_home_val:110345,lat:31.709,lon:-106.329,era:"older",new_construction:0},
+  {zip:79908,count:211,avg_income:64763,avg_home_val:56209,lat:31.824,lon:-106.387,era:"middle",new_construction:0},
+  {zip:79911,count:210,avg_income:120038,avg_home_val:339684,lat:31.896,lon:-106.564,era:"newer",new_construction:1},
+  {zip:79912,count:1249,avg_income:78327,avg_home_val:199428,lat:31.843,lon:-106.537,era:"middle",new_construction:1},
+  {zip:79915,count:283,avg_income:34862,avg_home_val:106615,lat:31.743,lon:-106.366,era:"older",new_construction:0},
+  {zip:79922,count:98,avg_income:112480,avg_home_val:347526,lat:31.826,lon:-106.580,era:"middle",new_construction:0},
+  {zip:79924,count:654,avg_income:46443,avg_home_val:137745,lat:31.904,lon:-106.413,era:"middle",new_construction:1},
+  {zip:79925,count:450,avg_income:52649,avg_home_val:153931,lat:31.781,lon:-106.362,era:"older",new_construction:0},
+  {zip:79927,count:171,avg_income:46591,avg_home_val:167511,lat:31.651,lon:-106.279,era:"newer",new_construction:0},
+  {zip:79928,count:736,avg_income:73280,avg_home_val:236045,lat:31.697,lon:-106.223,era:"newer",new_construction:20},
+  {zip:79930,count:248,avg_income:39403,avg_home_val:116371,lat:31.805,lon:-106.458,era:"older",new_construction:0},
+  {zip:79932,count:330,avg_income:92709,avg_home_val:293787,lat:31.870,lon:-106.602,era:"middle",new_construction:0},
+  {zip:79934,count:600,avg_income:71620,avg_home_val:221300,lat:31.945,lon:-106.403,era:"newer",new_construction:29},
+  {zip:79935,count:180,avg_income:51550,avg_home_val:141466,lat:31.772,lon:-106.330,era:"middle",new_construction:0},
+  {zip:79936,count:1124,avg_income:59375,avg_home_val:164994,lat:31.766,lon:-106.293,era:"middle",new_construction:0},
+  {zip:79938,count:1266,avg_income:77001,avg_home_val:231715,lat:31.791,lon:-106.227,era:"newer",new_construction:9}
+];
+
+const caData = [
+  {zip:79904,count:11,avg_income:46727,avg_home_val:61455,lat:31.851,lon:-106.441},
+  {zip:79906,count:6,avg_income:43000,avg_home_val:0,lat:31.802,lon:-106.421},
+  {zip:79908,count:10,avg_income:70100,avg_home_val:102000,lat:31.824,lon:-106.386},
+  {zip:79911,count:7,avg_income:121857,avg_home_val:380714,lat:31.896,lon:-106.564},
+  {zip:79912,count:36,avg_income:85056,avg_home_val:237243,lat:31.843,lon:-106.537},
+  {zip:79922,count:3,avg_income:106667,avg_home_val:316667,lat:31.826,lon:-106.580},
+  {zip:79924,count:16,avg_income:57250,avg_home_val:186059,lat:31.904,lon:-106.413},
+  {zip:79928,count:21,avg_income:74381,avg_home_val:248144,lat:31.697,lon:-106.223},
+  {zip:79932,count:11,avg_income:93545,avg_home_val:334189,lat:31.869,lon:-106.601},
+  {zip:79934,count:21,avg_income:67619,avg_home_val:226157,lat:31.945,lon:-106.403},
+  {zip:79936,count:35,avg_income:62400,avg_home_val:153943,lat:31.766,lon:-106.293},
+  {zip:79938,count:49,avg_income:71939,avg_home_val:219108,lat:31.791,lon:-106.227}
+];
+
+const caOrigins = [
+  {city:"San Diego",count:25},{city:"Los Angeles",count:16},{city:"Ontario",count:8},
+  {city:"Riverside",count:6},{city:"San Jose",count:6},{city:"San Bernardino",count:5},
+  {city:"Long Beach",count:5},{city:"Fort Irwin",count:5},{city:"Anaheim",count:4},{city:"El Cajon",count:4}
+];
+
+const militaryOrigins = [
+  {city:"Colorado Spgs (Fort Carson)",count:40,lat:38.867,lon:-104.761},
+  {city:"Clarksville (Fort Campbell)",count:26,lat:36.529,lon:-87.359},
+  {city:"Killeen (Fort Cavazos)",count:23,lat:31.117,lon:-97.727},
+  {city:"Fayetteville (Fort Bragg)",count:19,lat:35.052,lon:-78.878},
+  {city:"Columbus (Fort Moore)",count:18,lat:32.460,lon:-84.989},
+  {city:"Wahiawa (Schofield)",count:17,lat:21.502,lon:-158.024},
+  {city:"Lewis-McChord (JBLM)",count:14,lat:47.098,lon:-122.588},
+  {city:"Enterprise (Fort Rucker)",count:13,lat:31.325,lon:-85.855},
+  {city:"Fort Sill / Lawton",count:20,lat:34.648,lon:-98.402},
+  {city:"Watertown (Fort Drum)",count:10,lat:43.975,lon:-75.909}
+];
+
+const militaryDest = [
+  {zip:79908,count:72,lat:31.824,lon:-106.387},
+  {zip:79938,count:45,lat:31.791,lon:-106.227},
+  {zip:79904,count:41,lat:31.851,lon:-106.441},
+  {zip:79934,count:28,lat:31.945,lon:-106.403},
+  {zip:79906,count:27,lat:31.802,lon:-106.425},
+  {zip:79936,count:18,lat:31.766,lon:-106.293},
+  {zip:79928,count:15,lat:31.697,lon:-106.223},
+  {zip:79924,count:12,lat:31.904,lon:-106.413}
+];
+
+const ageData = [
+  {age:"30–34",count:237,avg_income:56034,avg_sqft:1473,avg_price:238667},
+  {age:"35–39",count:1001,avg_income:70056,avg_sqft:1768,avg_price:275304},
+  {age:"40–44",count:1314,avg_income:64795,avg_sqft:1836,avg_price:292096},
+  {age:"45–49",count:1297,avg_income:61829,avg_sqft:1884,avg_price:298098},
+  {age:"50–54",count:1592,avg_income:62415,avg_sqft:1831,avg_price:286835},
+  {age:"55–59",count:2113,avg_income:59920,avg_sqft:1834,avg_price:286109},
+  {age:"60–64",count:1699,avg_income:64967,avg_sqft:1803,avg_price:264879},
+  {age:"65+",count:288,avg_income:59701,avg_sqft:1762,avg_price:249499}
+];
+
+const loanData = [
+  {type:"VA",count:332,avg_sqft:2078,avg_price:326315,avg_income:88584},
+  {type:"Conventional",count:257,avg_sqft:2086,avg_price:355690,avg_income:96623},
+  {type:"FHA",count:184,avg_sqft:1780,avg_price:268044,avg_income:74212}
+];
+
+const sqftComp = [
+  {type:"New Construction",avg_sqft:1786,avg_beds:3.46,avg_baths:2.34,avg_price:325154,avg_ppsf:177.16,count:61},
+  {type:"Resale",avg_sqft:2048,avg_beds:3.61,avg_baths:2.62,avg_price:321452,avg_ppsf:156.52,count:662}
+];
+
+const sqftEraData = [
+  {era:"Older Core",bucket:"<1,000",pct:15.0},
+  {era:"Older Core",bucket:"1,000–1,500",pct:35.6},
+  {era:"Older Core",bucket:"1,500–2,000",pct:25.9},
+  {era:"Older Core",bucket:"2,000–2,500",pct:14.2},
+  {era:"Older Core",bucket:"2,500+",pct:9.2},
+  {era:"Middle Ring",bucket:"<1,000",pct:3.9},
+  {era:"Middle Ring",bucket:"1,000–1,500",pct:31.8},
+  {era:"Middle Ring",bucket:"1,500–2,000",pct:29.9},
+  {era:"Middle Ring",bucket:"2,000–2,500",pct:15.7},
+  {era:"Middle Ring",bucket:"2,500+",pct:18.7},
+  {era:"New Fringe",bucket:"<1,000",pct:0.6},
+  {era:"New Fringe",bucket:"1,000–1,500",pct:24.5},
+  {era:"New Fringe",bucket:"1,500–2,000",pct:44.2},
+  {era:"New Fringe",bucket:"2,000–2,500",pct:21.6},
+  {era:"New Fringe",bucket:"2,500+",pct:9.2}
+];
+
+const ppiData = [
+  {era:"Older Core",ratio:0.963},
+  {era:"Middle Ring",ratio:1.034},
+  {era:"New Fringe",ratio:1.064}
+];
+
+const seasonalData = [
+  {month:"Jan",count:771},{month:"Feb",count:583},{month:"Mar",count:669},
+  {month:"Apr",count:952},{month:"May",count:1004},{month:"Jun",count:748},
+  {month:"Jul",count:808},{month:"Aug",count:985},{month:"Sep",count:823},
+  {month:"Oct",count:698},{month:"Nov",count:821},{month:"Dec",count:679}
+];
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+const EP_B = {minLat:31.62,maxLat:31.98,minLon:-106.65,maxLon:-106.17};
+
+
+// ══════════════════════════════════════════════
+// LEAFLET HELPERS
+// ══════════════════════════════════════════════
+const EP_CENTER = [31.78, -106.42];
+const EP_ZOOM   = 11;
+const TILE_URL  = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const TILE_ATTR = '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap contributors';
+
+function makeBaseMap(id, zoom, center){
+  center = center || EP_CENTER;
+  zoom   = zoom   || EP_ZOOM;
+  const map = L.map(id, {
+    center: center,
+    zoom:   zoom,
+    zoomControl: true,
+    scrollWheelZoom: false,
+    attributionControl: true
+  });
+  L.tileLayer(TILE_URL, {
+    attribution: TILE_ATTR,
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+  return map;
+}
+
+function incomeColor(income){
+  if(income < 35000) return '#9b2226';
+  if(income < 50000) return '#C94F2B';
+  if(income < 70000) return '#D4A843';
+  if(income < 90000) return '#5C7A5C';
+  return '#2d6a4f';
+}
+
+// shared tooltip
+const tooltip = document.getElementById('tooltip');
+function showTip(e, html){ tooltip.innerHTML=html; tooltip.classList.add('visible'); moveTip(e); }
+function moveTip(e){ tooltip.style.left=Math.min(e.clientX+14,window.innerWidth-248)+'px'; tooltip.style.top=(e.clientY-20)+'px'; }
+function hideTip(){ tooltip.classList.remove('visible'); }
+document.addEventListener('mousemove', moveTip);
+
+// ── SVG overlay bubble layer on a Leaflet map ──
+// Leaflet exposes an SVG pane we draw D3 circles into so they
+// stay geo-registered as the user pans/zooms.
+function addBubbleLayer(lmap, data, radiusFn, colorFn, tipFn){
+  const svg = d3.select(lmap.getPanes().overlayPane).append('svg')
+    .style('position','absolute').style('top',0).style('left',0)
+    .style('pointer-events','none')
+    .style('width','100%').style('height','100%')
+    .style('overflow','visible');
+
+  const g = svg.append('g').attr('class','leaflet-zoom-hide');
+
+  function project(d){
+    const pt = lmap.latLngToLayerPoint([d.lat, d.lon]);
+    return pt;
+  }
+
+  function redraw(){
+    const topLeft = lmap.latLngToLayerPoint(lmap.getBounds().getNorthWest());
+    g.attr('transform', `translate(${-topLeft.x},${-topLeft.y})`);
+
+    const circles = g.selectAll('circle.bubble').data(data);
+    circles.enter().append('circle')
+      .attr('class','bubble')
+      .style('pointer-events','all')
+      .merge(circles)
+      .attr('cx', d => project(d).x)
+      .attr('cy', d => project(d).y)
+      .attr('r',  d => radiusFn(d))
+      .attr('fill', d => colorFn(d))
+      .attr('fill-opacity', 0.72)
+      .attr('stroke','#fff')
+      .attr('stroke-width', 1.5)
+      .style('cursor','pointer')
+      .on('mouseover', function(e,d){ showTip(e, tipFn(d)); d3.select(this).attr('fill-opacity',0.95); })
+      .on('mouseout',  function(e,d){ hideTip(); d3.select(this).attr('fill-opacity',0.72); });
+
+    circles.exit().remove();
+  }
+
+  lmap.on('zoomend moveend', redraw);
+  redraw();
+  return {redraw};
+}
+
+// ══════════════════════════════════════════════
+// ERA ORIENTATION MAP — Leaflet + GeoJSON zones
+// ══════════════════════════════════════════════
+function drawEraOrientationMap(){
+  const lmap = makeBaseMap('era-orientation-map', 11);
+
+  // Concentric zone polygons as real lat/lon coordinates
+  // These trace actual El Paso geographic boundaries
+  const olderCoreCoords = [
+    [31.832,-106.520],[31.832,-106.440],[31.870,-106.420],[31.850,-106.370],
+    [31.780,-106.320],[31.720,-106.280],[31.680,-106.330],[31.700,-106.400],
+    [31.740,-106.480],[31.770,-106.530],[31.832,-106.520]
+  ];
+  const middleRingCoords = [
+    [31.970,-106.560],[31.900,-106.635],[31.830,-106.635],[31.760,-106.590],
+    [31.720,-106.530],[31.680,-106.430],[31.650,-106.370],
+    // inner boundary (older core outline, reversed)
+    [31.680,-106.330],[31.720,-106.280],[31.780,-106.320],[31.850,-106.370],
+    [31.870,-106.420],[31.832,-106.440],[31.832,-106.520],
+    [31.770,-106.530],[31.740,-106.480],[31.700,-106.400],[31.680,-106.430],
+    // back up to middle outer
+    [31.650,-106.370],[31.620,-106.370],[31.620,-106.500],[31.650,-106.500],
+    [31.680,-106.430],[31.700,-106.400],[31.720,-106.280],[31.850,-106.370],
+    [31.870,-106.420],[31.832,-106.440],[31.832,-106.520],[31.770,-106.530],
+    [31.740,-106.480],[31.700,-106.400],[31.680,-106.430]
+  ];
+
+  // Simpler approach: draw each zone as a standalone filled polygon
+  // Older Core
+  L.polygon(olderCoreCoords, {
+    color: '#9b3a1a', weight: 2, opacity: 0.7,
+    fillColor: '#C94F2B', fillOpacity: 0.22
+  }).addTo(lmap).bindTooltip('<span style="font-family:DM Mono,monospace;font-size:11px"><strong>Older Core</strong><br>Pre-1950s urban grid<br>Zips: 79901–79905, 79907, 79915, 79925, 79930</span>');
+
+  // Middle Ring (annular ring between older core and fringe)
+  const middleSimple = [
+    [31.970,-106.560],[31.900,-106.635],[31.830,-106.635],[31.760,-106.590],
+    [31.720,-106.530],[31.680,-106.430],[31.650,-106.370],[31.620,-106.370],
+    [31.620,-106.500],[31.660,-106.510],[31.690,-106.440],
+    [31.720,-106.285],[31.790,-106.270],[31.870,-106.360],
+    [31.930,-106.370],[31.970,-106.370],[31.970,-106.510]
+  ];
+  L.polygon(middleSimple, {
+    color: '#b8822a', weight: 2, opacity: 0.65,
+    fillColor: '#D4A843', fillOpacity: 0.2
+  }).addTo(lmap).bindTooltip('<span style="font-family:DM Mono,monospace;font-size:11px"><strong>Middle Ring</strong><br>1960s – 1990s suburbs<br>Zips: 79908, 79912, 79922, 79924, 79932, 79935, 79936</span>');
+
+  // New Fringe (outer ring)
+  const fringeSimple = [
+    [31.980,-106.650],[31.980,-106.170],[31.620,-106.170],[31.620,-106.500],
+    [31.660,-106.510],[31.690,-106.440],[31.720,-106.285],[31.790,-106.270],
+    [31.870,-106.360],[31.930,-106.370],[31.970,-106.370],[31.970,-106.510],
+    [31.970,-106.560],[31.900,-106.635],[31.830,-106.635],[31.760,-106.590],
+    [31.720,-106.530],[31.680,-106.430],[31.650,-106.370],[31.620,-106.370],
+    [31.620,-106.650]
+  ];
+  L.polygon(fringeSimple, {
+    color: '#2d5a30', weight: 2, opacity: 0.6,
+    fillColor: '#5C7A5C', fillOpacity: 0.18
+  }).addTo(lmap).bindTooltip('<span style="font-family:DM Mono,monospace;font-size:11px"><strong>New Fringe</strong><br>2000s – present growth<br>Zips: 79911, 79927, 79928, 79934, 79938</span>');
+
+  // Zone labels as permanent markers
+  const zoneLabels = [
+    {pos:[31.756,-106.455], text:'OLDER CORE', color:'#7a2a10'},
+    {pos:[31.855,-106.600], text:'MIDDLE RING', color:'#7a5a10'},
+    {pos:[31.950,-106.340], text:'NEW FRINGE',  color:'#2d5a30'},
+  ];
+  zoneLabels.forEach(lb=>{
+    L.marker(lb.pos, {
+      icon: L.divIcon({
+        className:'',
+        html:`<div style="font-family:DM Mono,monospace;font-size:10px;font-weight:700;color:${lb.color};letter-spacing:.1em;white-space:nowrap;text-shadow:0 1px 3px rgba(255,255,255,0.9)">${lb.text}</div>`,
+        iconAnchor:[30,8]
+      })
+    }).addTo(lmap);
+  });
+}
+
+// ══════════════════════════════════════════════
+// EP INCOME MAP
+// ══════════════════════════════════════════════
+function drawEPIncomeMap(){
+  const lmap = makeBaseMap('ep-income-map', 11);
+  const rSc = d3.scaleSqrt().domain([0,1300]).range([5,36]);
+  addBubbleLayer(lmap, zipData,
+    d => rSc(d.count),
+    d => incomeColor(d.avg_income),
+    d => `<strong>ZIP ${d.zip}</strong><br>Avg income: $${(d.avg_income/1000).toFixed(0)}k<br>Avg home value: $${(d.avg_home_val/1000).toFixed(0)}k<br>Movers: ${d.count}`
+  );
+}
+
+// ══════════════════════════════════════════════
+// NEW CONSTRUCTION MAP
+// ══════════════════════════════════════════════
+function drawNewConstMap(){
+  const lmap = makeBaseMap('new-const-map', 11);
+  const rSc = d3.scaleSqrt().domain([0,30]).range([6,40]);
+
+  // All zips as grey dots first
+  addBubbleLayer(lmap,
+    zipData.filter(d => d.new_construction === 0),
+    d => 6,
+    d => '#b0a890',
+    d => `<strong>ZIP ${d.zip}</strong><br>No new construction recorded`
+  );
+  // New construction zips on top, sized by count
+  addBubbleLayer(lmap,
+    zipData.filter(d => d.new_construction > 0),
+    d => rSc(d.new_construction),
+    d => '#5C7A5C',
+    d => `<strong>ZIP ${d.zip}</strong><br>New construction sales: ${d.new_construction}<br>Avg home value: $${(d.avg_home_val/1000).toFixed(0)}k<br>Era: ${d.era}`
+  );
+}
+
+// ══════════════════════════════════════════════
+// CALIFORNIA MAP
+// ══════════════════════════════════════════════
+function drawCAMap(){
+  const lmap = makeBaseMap('ca-map', 11);
+  const rSc = d3.scaleSqrt().domain([0,50]).range([5,28]);
+  addBubbleLayer(lmap,
+    caData.filter(d => d.count > 0),
+    d => rSc(d.count),
+    d => '#C94F2B',
+    d => `<strong>ZIP ${d.zip}</strong><br>CA arrivals: ${d.count}<br>Avg income: $${(d.avg_income/1000).toFixed(0)}k<br>Avg home value: ${d.avg_home_val>1000?'$'+(d.avg_home_val/1000).toFixed(0)+'k':'N/A'}`
+  );
+}
+
+// ══════════════════════════════════════════════
+// FINAL / INCOME DIVIDE MAP
+// ══════════════════════════════════════════════
+function drawFinalMap(){
+  const lmap = makeBaseMap('final-map', 11);
+  const rSc = d3.scaleSqrt().domain([0,1300]).range([5,38]);
+  addBubbleLayer(lmap, zipData,
+    d => rSc(d.count),
+    d => incomeColor(d.avg_income),
+    d => {
+      const era = d.era==='older'?'Older Core':d.era==='newer'?'New Fringe':'Middle Ring';
+      return `<strong>ZIP ${d.zip}</strong><br>Era: ${era}<br>Movers: ${d.count}<br>Avg income: $${(d.avg_income/1000).toFixed(0)}k<br>Avg home value: $${(d.avg_home_val/1000).toFixed(0)}k<br>New construction: ${d.new_construction}`;
+    }
+  );
+}
+
+
+// ══════════════════════════════════════════════
+// VIZ 1 – FILTERING STACKED BAR
+// ══════════════════════════════════════════════
+function drawFilteringChart(){
+  const c=document.getElementById('filtering-chart');
+  const W=c.clientWidth||700,H=200;
+  const m={top:10,right:20,bottom:36,left:96};
+  const data=[
+    {era:"Older Core",    b:[429,1398,404,150,52]},
+    {era:"Middle Ring",   b:[318,1165,1634,354,654]},
+    {era:"New Fringe",    b:[29,261,1444,936,313]}
+  ];
+  const labels=["<$30k","$30–50k","$50–75k","$75–100k","$100k+"];
+  const colors=["#9b2226","#C94F2B","#D4A843","#5C7A5C","#2d6a4f"];
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xSc=d3.scaleLinear().domain([0,100]).range([0,iW]);
+  const ySc=d3.scaleBand().domain(data.map(d=>d.era)).range([0,iH]).padding(.28);
+  data.forEach(d=>{
+    const tot=d.b.reduce((s,v)=>s+v,0);
+    let cum=0;
+    d.b.forEach((v,i)=>{
+      const pct=v/tot*100;
+      g.append('rect').attr('x',xSc(cum)).attr('y',ySc(d.era))
+        .attr('width',xSc(pct)).attr('height',ySc.bandwidth())
+        .attr('fill',colors[i])
+        .on('mouseover',e=>showTip(e,`<strong>${d.era}</strong><br>${labels[i]}: ${pct.toFixed(1)}%`))
+        .on('mouseout',hideTip);
+      cum+=pct;
+    });
+    g.append('text').attr('x',-6).attr('y',ySc(d.era)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('text-anchor','end').attr('font-size',11).attr('fill','#2e2820').text(d.era);
+  });
+  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xSc).ticks(5).tickFormat(d=>d+'%'))
+    .select('.domain').remove();
+  g.selectAll('.tick text').attr('font-size',10).attr('fill','#6B5E4E');
+  g.selectAll('.tick line').attr('stroke','#D4CCC0');
+  const leg=document.getElementById('filtering-legend');
+  leg.innerHTML='';
+  labels.forEach((l,i)=>{
+    const el=document.createElement('div');el.className='legend-item';
+    el.innerHTML=`<div class="legend-swatch" style="background:${colors[i]}"></div>${l}`;
+    leg.appendChild(el);
+  });
+}
+
+// ══════════════════════════════════════════════
+// SHARED EP BUBBLE MAP
+// ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// VIZ 2 – EP INCOME MAP
+// ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// VIZ 3 – NEW CONSTRUCTION MAP
+// ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// VIZ 4 – CA MAP
+// ══════════════════════════════════════════════
+
+function drawCAOriginChart(){
+  const c=document.getElementById('ca-origin-chart');
+  const W=c.clientWidth||600,H=240;
+  const m={top:10,right:50,bottom:10,left:140};
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xSc=d3.scaleLinear().domain([0,28]).range([0,iW]);
+  const ySc=d3.scaleBand().domain(caOrigins.map(d=>d.city)).range([0,iH]).padding(.3);
+  caOrigins.forEach(d=>{
+    g.append('rect').attr('x',0).attr('y',ySc(d.city)).attr('width',xSc(d.count)).attr('height',ySc.bandwidth())
+      .attr('fill','#C94F2B').attr('opacity',.8);
+    g.append('text').attr('x',xSc(d.count)+5).attr('y',ySc(d.city)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('font-size',11).attr('fill','#6B5E4E').text(d.count);
+    g.append('text').attr('x',-6).attr('y',ySc(d.city)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('text-anchor','end').attr('font-size',11).attr('fill','#2e2820').text(d.city);
+  });
+}
+
+function drawCAIncomeChart(){
+  const c=document.getElementById('ca-income-chart');
+  const W=c.clientWidth||600,H=240;
+  const m={top:10,right:100,bottom:36,left:70};
+  const data=caData.filter(d=>d.avg_home_val>1000&&d.count>0);
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xSc=d3.scaleLinear().domain([0,420000]).range([0,iW]);
+  const ySc=d3.scaleBand().domain(data.map(d=>d.zip)).range([0,iH]).padding(.3);
+  data.forEach(d=>{
+    g.append('rect').attr('x',0).attr('y',ySc(d.zip)).attr('width',xSc(d.avg_home_val)).attr('height',ySc.bandwidth())
+      .attr('fill','#C94F2B').attr('opacity',.72)
+      .on('mouseover',e=>showTip(e,`<strong>ZIP ${d.zip}</strong><br>CA arrivals: ${d.count}<br>Avg home val: $${(d.avg_home_val/1000).toFixed(0)}k`))
+      .on('mouseout',hideTip);
+    g.append('text').attr('x',xSc(d.avg_home_val)+5).attr('y',ySc(d.zip)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('font-size',9).attr('fill','#6B5E4E')
+      .text(`$${(d.avg_home_val/1000).toFixed(0)}k (n=${d.count})`);
+    g.append('text').attr('x',-5).attr('y',ySc(d.zip)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('text-anchor','end').attr('font-size',10).attr('fill','#2e2820').text(d.zip);
+  });
+  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xSc).ticks(4).tickFormat(d=>'$'+(d/1000)+'k'))
+    .select('.domain').remove();
+  g.selectAll('.tick text').attr('font-size',9).attr('fill','#6B5E4E');
+}
+
+// ══════════════════════════════════════════════
+// VIZ 5 – MILITARY FLOW MAP
+// ══════════════════════════════════════════════
+function drawMilitaryFlowMap(){
+  const c=document.getElementById('military-flow-map');
+  const W=c.clientWidth||760,H=480,SPLIT=W*.45;
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  svg.append('rect').attr('width',SPLIT).attr('height',H).attr('fill','#d5d0c6');
+  svg.append('rect').attr('x',SPLIT).attr('width',W-SPLIT).attr('height',H).attr('fill','#ddd8ce');
+  svg.append('line').attr('x1',SPLIT).attr('y1',0).attr('x2',SPLIT).attr('y2',H)
+    .attr('stroke','#b0a898').attr('stroke-width',1).attr('stroke-dasharray','4,4');
+  svg.append('text').attr('x',12).attr('y',H-12).attr('font-size',9).attr('fill','#8a7e70')
+    .attr('font-family','DM Mono,monospace').attr('letter-spacing','.1em').text('ORIGIN BASES (U.S.)');
+  svg.append('text').attr('x',SPLIT+10).attr('y',H-12).attr('font-size',9).attr('fill','#8a7e70')
+    .attr('font-family','DM Mono,monospace').attr('letter-spacing','.1em').text('EL PASO DESTINATIONS');
+  const US_B={minLat:20,maxLat:50,minLon:-125,maxLon:-65};
+  function usP(lat,lon){
+    const x=14+(lon-US_B.minLon)/(US_B.maxLon-US_B.minLon)*(SPLIT-28);
+    const y=(H-22)-(lat-US_B.minLat)/(US_B.maxLat-US_B.minLat)*(H-36);
+    return[x,y];
+  }
+  const EP_B2={minLat:31.62,maxLat:31.98,minLon:-106.65,maxLon:-106.17};
+  function epP(lat,lon){
+    const x=SPLIT+14+(lon-EP_B2.minLon)/(EP_B2.maxLon-EP_B2.minLon)*(W-SPLIT-28);
+    const y=(H-22)-(lat-EP_B2.minLat)/(EP_B2.maxLat-EP_B2.minLat)*(H-36);
+    return[x,y];
+  }
+  const countSc=d3.scaleSqrt().domain([0,45]).range([3,16]);
+  const destPos={};
+  militaryDest.forEach(d=>{destPos[d.zip]=epP(d.lat,d.lon)});
+  militaryOrigins.forEach(orig=>{
+    const[ox,oy]=usP(orig.lat,orig.lon);
+    [[79908,.35],[79938,.25],[79934,.2],[79904,.15]].forEach(([zip,frac])=>{
+      const dest=destPos[zip];if(!dest)return;
+      const flows=Math.round(orig.count*frac);if(flows<1)return;
+      svg.append('path')
+        .attr('d',`M${ox},${oy} C${SPLIT-20},${oy} ${SPLIT+20},${dest[1]} ${dest[0]},${dest[1]}`)
+        .attr('stroke','#3D6B8C').attr('stroke-width',Math.max(.5,flows*.35))
+        .attr('fill','none').attr('opacity',.2);
+    });
+  });
+  militaryDest.forEach(d=>{
+    const pos=destPos[d.zip];if(!pos)return;
+    svg.append('circle').attr('cx',pos[0]).attr('cy',pos[1]).attr('r',countSc(d.count)+3)
+      .attr('fill','#C94F2B').attr('opacity',.15);
+    svg.append('circle').attr('cx',pos[0]).attr('cy',pos[1]).attr('r',countSc(d.count))
+      .attr('fill','#C94F2B').attr('opacity',.78).attr('stroke','#fff').attr('stroke-width',1)
+      .style('cursor','pointer')
+      .on('mouseover',e=>showTip(e,`<strong>ZIP ${d.zip}</strong><br>Military arrivals: ${d.count}`))
+      .on('mouseout',hideTip);
+    svg.append('text').attr('x',pos[0]).attr('y',pos[1]+countSc(d.count)+10)
+      .attr('text-anchor','middle').attr('font-size',8).attr('fill','#8B3A2A')
+      .attr('font-family','DM Mono,monospace').text(d.zip);
+  });
+  militaryOrigins.forEach(orig=>{
+    const[x,y]=usP(orig.lat,orig.lon);
+    svg.append('circle').attr('cx',x).attr('cy',y).attr('r',countSc(orig.count))
+      .attr('fill','#3D6B8C').attr('opacity',.82).attr('stroke','#fff').attr('stroke-width',1)
+      .style('cursor','pointer')
+      .on('mouseover',e=>showTip(e,`<strong>${orig.city}</strong><br>Households: ${orig.count}`))
+      .on('mouseout',hideTip);
+  });
+}
+
+function drawMilitaryBar(){
+  const c=document.getElementById('military-bar');
+  const W=c.clientWidth||640,H=240;
+  const m={top:10,right:50,bottom:10,left:190};
+  const sorted=[...militaryOrigins].sort((a,b)=>b.count-a.count);
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xSc=d3.scaleLinear().domain([0,45]).range([0,iW]);
+  const ySc=d3.scaleBand().domain(sorted.map(d=>d.city)).range([0,iH]).padding(.3);
+  sorted.forEach(d=>{
+    g.append('rect').attr('x',0).attr('y',ySc(d.city)).attr('width',xSc(d.count)).attr('height',ySc.bandwidth())
+      .attr('fill','#3D6B8C').attr('opacity',.8);
+    g.append('text').attr('x',xSc(d.count)+5).attr('y',ySc(d.city)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('font-size',11).attr('fill','#3D6B8C').text(d.count);
+    g.append('text').attr('x',-6).attr('y',ySc(d.city)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('text-anchor','end').attr('font-size',11).attr('fill','#2e2820').text(d.city);
+  });
+}
+
+// ══════════════════════════════════════════════
+// VIZ 6 – ERA COMPARE
+// ══════════════════════════════════════════════
+function drawEraCompare(){
+  const c=document.getElementById('era-compare-chart');
+  const W=c.clientWidth||700,H=240;
+  const m={top:30,right:20,bottom:44,left:60};
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const eraColors={"Older Core":"#C94F2B","Middle Ring":"#D4A843","New Fringe":"#5C7A5C"};
+  const eraStats={
+    "Older Core":{avg_income:43000,avg_home_val:115000,new_const:0,total_movers:2433},
+    "Middle Ring":{avg_income:63000,avg_home_val:220000,new_const:2,total_movers:4125},
+    "New Fringe": {avg_income:76000,avg_home_val:237000,new_const:59,total_movers:2983}
+  };
+  const metrics=[
+    {key:'avg_income',label:'Avg Income',fmt:v=>'$'+(v/1000).toFixed(0)+'k',max:130000},
+    {key:'avg_home_val',label:'Avg Home Value',fmt:v=>'$'+(v/1000).toFixed(0)+'k',max:370000},
+    {key:'new_const',label:'New Construction',fmt:v=>v,max:65},
+    {key:'total_movers',label:'Total Movers',fmt:v=>v.toLocaleString(),max:4200}
+  ];
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xGSc=d3.scaleBand().domain(metrics.map(mm=>mm.key)).range([0,iW]).padding(.3);
+  const bW=xGSc.bandwidth()/3.8;
+  [.25,.5,.75,1].forEach(f=>{
+    g.append('line').attr('x1',0).attr('y1',iH*f).attr('x2',iW).attr('y2',iH*f)
+      .attr('stroke','#D4CCC0').attr('stroke-width',.5);
+  });
+  metrics.forEach(mm=>{
+    const ySc=d3.scaleLinear().domain([0,mm.max]).range([iH,0]);
+    Object.keys(eraStats).forEach((era,i)=>{
+      const val=eraStats[era][mm.key];
+      const x=xGSc(mm.key)+(i-1)*(bW+3);
+      g.append('rect').attr('x',x).attr('y',ySc(val)).attr('width',bW).attr('height',iH-ySc(val))
+        .attr('fill',eraColors[era]).attr('opacity',.82)
+        .on('mouseover',e=>showTip(e,`<strong>${era}</strong><br>${mm.label}: ${mm.fmt(val)}`))
+        .on('mouseout',hideTip);
+    });
+    g.append('text').attr('x',xGSc(mm.key)+xGSc.bandwidth()/2).attr('y',iH+16)
+      .attr('text-anchor','middle').attr('font-size',10).attr('fill','#6B5E4E').text(mm.label);
+  });
+}
+
+// VIZ 6b – FINAL MAP
+
+// ══════════════════════════════════════════════
+// VIZ 7 – SQFT COMPARISON (new vs resale)
+// ══════════════════════════════════════════════
+function drawSqftCompare(){
+  const c=document.getElementById('sqft-compare-chart');
+  const W=c.clientWidth||700,H=280;
+  const m={top:40,right:20,bottom:40,left:120};
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const metrics=[
+    {key:'avg_sqft',label:'Avg Sq Ft',max:2400},
+    {key:'avg_ppsf',label:'$/Sq Ft',max:210},
+    {key:'avg_beds',label:'Bedrooms',max:4.2},
+    {key:'avg_baths',label:'Total Baths',max:3.2}
+  ];
+  const colors={'New Construction':'#5C7A5C','Resale':'#C94F2B'};
+  const xGSc=d3.scaleBand().domain(metrics.map(m=>m.key)).range([0,iW]).padding(.32);
+  const bW=xGSc.bandwidth()/2.4;
+  // Legend at top
+  Object.keys(colors).forEach((type,i)=>{
+    svg.append('rect').attr('x',m.left+i*130).attr('y',10).attr('width',12).attr('height',12).attr('fill',colors[type]);
+    svg.append('text').attr('x',m.left+i*130+16).attr('y',20).attr('font-size',11).attr('fill','#2e2820').text(type);
+  });
+  [.25,.5,.75,1].forEach(f=>{
+    g.append('line').attr('x1',0).attr('y1',iH*f).attr('x2',iW).attr('y2',iH*f)
+      .attr('stroke','#D4CCC0').attr('stroke-width',.5);
+  });
+  metrics.forEach(mm=>{
+    const ySc=d3.scaleLinear().domain([0,mm.max]).range([iH,0]);
+    sqftComp.forEach((d,i)=>{
+      const val=d[mm.key];
+      const x=xGSc(mm.key)+(i-.5)*(bW+4);
+      g.append('rect').attr('x',x).attr('y',ySc(val)).attr('width',bW).attr('height',iH-ySc(val))
+        .attr('fill',colors[d.type]).attr('opacity',.82)
+        .on('mouseover',e=>showTip(e,`<strong>${d.type}</strong><br>${mm.label}: ${val.toFixed(mm.key==='avg_sqft'?0:2)}`))
+        .on('mouseout',hideTip);
+      g.append('text').attr('x',x+bW/2).attr('y',ySc(val)-4)
+        .attr('text-anchor','middle').attr('font-size',9).attr('fill',colors[d.type])
+        .text(mm.key==='avg_sqft'?val.toFixed(0):mm.key==='avg_ppsf'?'$'+val.toFixed(0):val.toFixed(2));
+    });
+    g.append('text').attr('x',xGSc(mm.key)+xGSc.bandwidth()/2).attr('y',iH+16)
+      .attr('text-anchor','middle').attr('font-size',10).attr('fill','#6B5E4E').text(mm.label);
+  });
+}
+
+// ══════════════════════════════════════════════
+// VIZ 8 – SQFT DISTRIBUTION BY ERA
+// ══════════════════════════════════════════════
+function drawSqftDist(){
+  const c=document.getElementById('sqft-dist-chart');
+  const W=c.clientWidth||700,H=220;
+  const m={top:10,right:20,bottom:40,left:90};
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const eras=["Older Core","Middle Ring","New Fringe"];
+  const buckets=["<1,000","1,000–1,500","1,500–2,000","2,000–2,500","2,500+"];
+  const colors={"Older Core":"#C94F2B","Middle Ring":"#D4A843","New Fringe":"#5C7A5C"};
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xGSc=d3.scaleBand().domain(buckets).range([0,iW]).padding(.28);
+  const ySc=d3.scaleLinear().domain([0,50]).range([iH,0]);
+  const bW=xGSc.bandwidth()/3.4;
+  [10,20,30,40].forEach(v=>{
+    g.append('line').attr('x1',0).attr('y1',ySc(v)).attr('x2',iW).attr('y2',ySc(v))
+      .attr('stroke','#D4CCC0').attr('stroke-width',.5);
+    g.append('text').attr('x',-5).attr('y',ySc(v)).attr('dy','.35em')
+      .attr('text-anchor','end').attr('font-size',9).attr('fill','#6B5E4E').text(v+'%');
+  });
+  buckets.forEach(bkt=>{
+    eras.forEach((era,i)=>{
+      const row=sqftEraData.find(d=>d.era===era&&d.bucket===bkt);
+      if(!row)return;
+      const x=xGSc(bkt)+(i-1)*(bW+3);
+      g.append('rect').attr('x',x).attr('y',ySc(row.pct)).attr('width',bW).attr('height',iH-ySc(row.pct))
+        .attr('fill',colors[era]).attr('opacity',.82)
+        .on('mouseover',e=>showTip(e,`<strong>${era}</strong><br>${bkt} sq ft<br>${row.pct}% of homes`))
+        .on('mouseout',hideTip);
+    });
+    g.append('text').attr('x',xGSc(bkt)+xGSc.bandwidth()/2).attr('y',iH+16)
+      .attr('text-anchor','middle').attr('font-size',10).attr('fill','#6B5E4E').text(bkt);
+  });
+}
+
+// ══════════════════════════════════════════════
+// VIZ 9 – AGE CHART (bars + line)
+// ══════════════════════════════════════════════
+function drawAgeChart(){
+  const c=document.getElementById('age-chart');
+  const W=c.clientWidth||700,H=260;
+  const m={top:30,right:70,bottom:36,left:60};
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xSc=d3.scaleBand().domain(ageData.map(d=>d.age)).range([0,iW]).padding(.28);
+  const ySc=d3.scaleLinear().domain([0,2400]).range([iH,0]);
+  const yIncSc=d3.scaleLinear().domain([40000,80000]).range([iH,0]);
+  [500,1000,1500,2000].forEach(v=>{
+    g.append('line').attr('x1',0).attr('y1',ySc(v)).attr('x2',iW).attr('y2',ySc(v))
+      .attr('stroke','#D4CCC0').attr('stroke-width',.5);
+  });
+  // Bars
+  ageData.forEach(d=>{
+    g.append('rect').attr('x',xSc(d.age)).attr('y',ySc(d.count))
+      .attr('width',xSc.bandwidth()).attr('height',iH-ySc(d.count))
+      .attr('fill','#D4A843').attr('opacity',.75)
+      .on('mouseover',e=>showTip(e,`<strong>Age ${d.age}</strong><br>Households: ${d.count.toLocaleString()}<br>Avg income: $${(d.avg_income/1000).toFixed(0)}k<br>Avg sqft: ${d.avg_sqft.toFixed(0)}`))
+      .on('mouseout',hideTip);
+  });
+  // Income line
+  const line=d3.line().x(d=>xSc(d.age)+xSc.bandwidth()/2).y(d=>yIncSc(d.avg_income)).curve(d3.curveMonotoneX);
+  g.append('path').datum(ageData).attr('d',line).attr('stroke','#C94F2B').attr('stroke-width',2.5).attr('fill','none');
+  ageData.forEach(d=>{
+    g.append('circle').attr('cx',xSc(d.age)+xSc.bandwidth()/2).attr('cy',yIncSc(d.avg_income))
+      .attr('r',4).attr('fill','#C94F2B').attr('stroke','#fff').attr('stroke-width',1.5);
+  });
+  // Axes
+  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xSc))
+    .select('.domain').remove();
+  g.selectAll('.tick text').attr('font-size',10).attr('fill','#6B5E4E');
+  g.selectAll('.tick line').remove();
+  g.append('g').call(d3.axisLeft(ySc).ticks(4).tickFormat(d=>d.toLocaleString()))
+    .select('.domain').remove();
+  g.selectAll('.tick text').attr('font-size',9).attr('fill','#6B5E4E');
+  // Right axis label
+  g.append('g').attr('transform',`translate(${iW},0)`)
+    .call(d3.axisRight(yIncSc).ticks(4).tickFormat(d=>'$'+(d/1000).toFixed(0)+'k'))
+    .select('.domain').remove();
+  // Labels
+  svg.append('text').attr('x',m.left-44).attr('y',m.top+iH/2).attr('transform',`rotate(-90,${m.left-44},${m.top+iH/2})`)
+    .attr('text-anchor','middle').attr('font-size',10).attr('fill','#D4A843').text('# Households');
+  svg.append('text').attr('x',W-m.right+44).attr('y',m.top+iH/2).attr('transform',`rotate(90,${W-m.right+44},${m.top+iH/2})`)
+    .attr('text-anchor','middle').attr('font-size',10).attr('fill','#C94F2B').text('Avg Income');
+  // Legend
+  svg.append('rect').attr('x',m.left).attr('y',8).attr('width',12).attr('height',12).attr('fill','#D4A843');
+  svg.append('text').attr('x',m.left+16).attr('y',18).attr('font-size',10).attr('fill','#2e2820').text('Household count');
+  svg.append('circle').attr('cx',m.left+140).attr('cy',14).attr('r',5).attr('fill','#C94F2B');
+  svg.append('text').attr('x',m.left+150).attr('y',18).attr('font-size',10).attr('fill','#2e2820').text('Avg household income');
+}
+
+// ══════════════════════════════════════════════
+// VIZ 10 – LOAN TYPE CHART
+// ══════════════════════════════════════════════
+function drawLoanChart(){
+  const c=document.getElementById('loan-chart');
+  const W=c.clientWidth||700,H=260;
+  const m={top:40,right:20,bottom:36,left:120};
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const metrics=[
+    {key:'count',label:'# Purchases',max:380},
+    {key:'avg_sqft',label:'Avg Sq Ft',max:2400},
+    {key:'avg_price',label:'Avg Price',max:400000}
+  ];
+  const colors={'VA':'#3D6B8C','Conventional':'#5C7A5C','FHA':'#D4A843'};
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  // Legend
+  Object.keys(colors).forEach((type,i)=>{
+    svg.append('rect').attr('x',m.left+i*120).attr('y',8).attr('width',12).attr('height',12).attr('fill',colors[type]);
+    svg.append('text').attr('x',m.left+i*120+16).attr('y',18).attr('font-size',11).attr('fill','#2e2820').text(type);
+  });
+  const xGSc=d3.scaleBand().domain(metrics.map(mm=>mm.key)).range([0,iW]).padding(.32);
+  const bW=xGSc.bandwidth()/3.4;
+  [.25,.5,.75,1].forEach(f=>{
+    g.append('line').attr('x1',0).attr('y1',iH*f).attr('x2',iW).attr('y2',iH*f)
+      .attr('stroke','#D4CCC0').attr('stroke-width',.5);
+  });
+  metrics.forEach(mm=>{
+    const ySc=d3.scaleLinear().domain([0,mm.max]).range([iH,0]);
+    loanData.forEach((d,i)=>{
+      const val=d[mm.key];
+      const x=xGSc(mm.key)+(i-1)*(bW+4);
+      g.append('rect').attr('x',x).attr('y',ySc(val)).attr('width',bW).attr('height',iH-ySc(val))
+        .attr('fill',colors[d.type]).attr('opacity',.82)
+        .on('mouseover',e=>showTip(e,`<strong>${d.type}</strong><br>${mm.label}: ${mm.key==='avg_price'?'$'+(val/1000).toFixed(0)+'k':mm.key==='count'?val:val.toFixed(0)}`))
+        .on('mouseout',hideTip);
+      const lbl=mm.key==='avg_price'?'$'+(val/1000).toFixed(0)+'k':mm.key==='count'?val:val.toFixed(0);
+      g.append('text').attr('x',x+bW/2).attr('y',ySc(val)-4)
+        .attr('text-anchor','middle').attr('font-size',9).attr('fill',colors[d.type]).text(lbl);
+    });
+    g.append('text').attr('x',xGSc(mm.key)+xGSc.bandwidth()/2).attr('y',iH+16)
+      .attr('text-anchor','middle').attr('font-size',10).attr('fill','#6B5E4E').text(mm.label);
+  });
+}
+
+// ══════════════════════════════════════════════
+// VIZ 11 – STRETCH / PPI CHART
+// ══════════════════════════════════════════════
+function drawStretchChart(){
+  const c=document.getElementById('stretch-chart');
+  const W=c.clientWidth||700,H=180;
+  const m={top:20,right:80,bottom:36,left:110};
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xSc=d3.scaleLinear().domain([0.88,1.12]).range([0,iW]);
+  const ySc=d3.scaleBand().domain(ppiData.map(d=>d.era)).range([0,iH]).padding(.32);
+  const eraColors={"Older Core":"#C94F2B","Middle Ring":"#D4A843","New Fringe":"#5C7A5C"};
+  // Reference line at 1.0
+  const x1=xSc(1.0);
+  g.append('line').attr('x1',x1).attr('y1',-10).attr('x2',x1).attr('y2',iH+10)
+    .attr('stroke','#6B5E4E').attr('stroke-width',1.5).attr('stroke-dasharray','4,3');
+  g.append('text').attr('x',x1).attr('y',-14).attr('text-anchor','middle')
+    .attr('font-size',9).attr('fill','#6B5E4E').attr('font-family','DM Mono,monospace').text('INCOME = SPENDING');
+  ppiData.forEach(d=>{
+    const barW=Math.abs(xSc(d.ratio)-xSc(1.0));
+    const barX=d.ratio>=1?x1:xSc(d.ratio);
+    g.append('rect').attr('x',barX).attr('y',ySc(d.era))
+      .attr('width',barW).attr('height',ySc.bandwidth())
+      .attr('fill',eraColors[d.era]).attr('opacity',.82)
+      .on('mouseover',e=>showTip(e,`<strong>${d.era}</strong><br>PPI/Income ratio: ${d.ratio.toFixed(3)}<br>${d.ratio>1?'Spending above income':'Spending below income'}`))
+      .on('mouseout',hideTip);
+    g.append('text').attr('x',d.ratio>=1?xSc(d.ratio)+6:xSc(d.ratio)-6)
+      .attr('y',ySc(d.era)+ySc.bandwidth()/2).attr('dy','.35em')
+      .attr('text-anchor',d.ratio>=1?'start':'end')
+      .attr('font-size',11).attr('fill',eraColors[d.era]).attr('font-weight','600').text(d.ratio.toFixed(3));
+    g.append('text').attr('x',-6).attr('y',ySc(d.era)+ySc.bandwidth()/2)
+      .attr('dy','.35em').attr('text-anchor','end').attr('font-size',11).attr('fill','#2e2820').text(d.era);
+  });
+  g.append('text').attr('x',xSc(.88)).attr('y',iH+22).attr('font-size',9).attr('fill','#C94F2B')
+    .attr('font-family','DM Mono,monospace').text('← Spending below income');
+  g.append('text').attr('x',xSc(1.05)).attr('y',iH+22).attr('font-size',9).attr('fill','#5C7A5C')
+    .attr('font-family','DM Mono,monospace').text('Spending above income →');
+}
+
+// ══════════════════════════════════════════════
+// VIZ 12 – SEASONAL CHART
+// ══════════════════════════════════════════════
+function drawSeasonalChart(){
+  const c=document.getElementById('seasonal-chart');
+  const W=c.clientWidth||700,H=220;
+  const m={top:20,right:30,bottom:36,left:60};
+  const iW=W-m.left-m.right,iH=H-m.top-m.bottom;
+  const svg=d3.select(c).append('svg').attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${m.left},${m.top})`);
+  const xSc=d3.scaleBand().domain(seasonalData.map(d=>d.month)).range([0,iW]).padding(.22);
+  const ySc=d3.scaleLinear().domain([0,1150]).range([iH,0]);
+  [250,500,750,1000].forEach(v=>{
+    g.append('line').attr('x1',0).attr('y1',ySc(v)).attr('x2',iW).attr('y2',ySc(v))
+      .attr('stroke','#D4CCC0').attr('stroke-width',.5);
+    g.append('text').attr('x',-5).attr('y',ySc(v)).attr('dy','.35em')
+      .attr('text-anchor','end').attr('font-size',9).attr('fill','#6B5E4E').text(v);
+  });
+  // PCS shading
+  const pcsStart=xSc('Jun'),pcsEnd=xSc('Aug')+xSc.bandwidth();
+  g.append('rect').attr('x',pcsStart).attr('y',0).attr('width',pcsEnd-pcsStart).attr('height',iH)
+    .attr('fill','#3D6B8C').attr('opacity',.07);
+  g.append('text').attr('x',(pcsStart+pcsEnd)/2).attr('y',12)
+    .attr('text-anchor','middle').attr('font-size',8).attr('fill','#3D6B8C')
+    .attr('font-family','DM Mono,monospace').text('PCS SEASON');
+  // Spring shading
+  const spStart=xSc('Apr'),spEnd=xSc('May')+xSc.bandwidth();
+  g.append('rect').attr('x',spStart).attr('y',0).attr('width',spEnd-spStart).attr('height',iH)
+    .attr('fill','#5C7A5C').attr('opacity',.07);
+  g.append('text').attr('x',(spStart+spEnd)/2).attr('y',12)
+    .attr('text-anchor','middle').attr('font-size',8).attr('fill','#5C7A5C')
+    .attr('font-family','DM Mono,monospace').text('SPRING RE');
+  // Area
+  const area=d3.area().x(d=>xSc(d.month)+xSc.bandwidth()/2).y0(iH).y1(d=>ySc(d.count)).curve(d3.curveMonotoneX);
+  const line=d3.line().x(d=>xSc(d.month)+xSc.bandwidth()/2).y(d=>ySc(d.count)).curve(d3.curveMonotoneX);
+  g.append('path').datum(seasonalData).attr('d',area).attr('fill','#D4A843').attr('opacity',.25);
+  g.append('path').datum(seasonalData).attr('d',line).attr('stroke','#D4A843').attr('stroke-width',2.5).attr('fill','none');
+  seasonalData.forEach(d=>{
+    g.append('circle').attr('cx',xSc(d.month)+xSc.bandwidth()/2).attr('cy',ySc(d.count))
+      .attr('r',4).attr('fill','#D4A843').attr('stroke','#fff').attr('stroke-width',1.5)
+      .style('cursor','pointer')
+      .on('mouseover',e=>showTip(e,`<strong>${d.month}</strong><br>Moves: ${d.count.toLocaleString()}`))
+      .on('mouseout',hideTip);
+  });
+  g.append('g').attr('transform',`translate(0,${iH})`).call(d3.axisBottom(xSc))
+    .select('.domain').remove();
+  g.selectAll('.tick text').attr('font-size',10).attr('fill','#6B5E4E');
+  g.selectAll('.tick line').remove();
+}
+
+// ══════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════
+function switchTab(showId,hideId,btn){
+  document.getElementById(showId).classList.add('active');
+  document.getElementById(hideId).classList.remove('active');
+  btn.closest('.tab-group').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// ERA ORIENTATION MAP
+// ══════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════
+// NAV HIGHLIGHT + PROGRESS
+// ══════════════════════════════════════════════
+const sections=document.querySelectorAll('.story-section');
+const navLinks=document.querySelectorAll('.nav-link');
+window.addEventListener('scroll',()=>{
+  const pct=window.scrollY/(document.body.scrollHeight-window.innerHeight)*100;
+  document.getElementById('progress').style.width=pct+'%';
+  let active='';
+  sections.forEach(s=>{
+    if(window.scrollY>=s.offsetTop-120)active='#'+s.id;
+  });
+  navLinks.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')===active)});
+});
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  drawEraOrientationMap();
+  drawFilteringChart();
+  drawEPIncomeMap();
+  drawNewConstMap();
+  drawCAMap();
+  drawCAOriginChart();
+  drawCAIncomeChart();
+  drawMilitaryFlowMap();
+  drawMilitaryBar();
+  drawEraCompare();
+  drawFinalMap();
+  drawSqftCompare();
+  drawSqftDist();
+  drawAgeChart();
+  drawLoanChart();
+  drawStretchChart();
+  drawSeasonalChart();
+});
+
+</script>
