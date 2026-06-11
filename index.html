@@ -675,45 +675,29 @@ document.addEventListener('mousemove', moveTip);
 // Leaflet exposes an SVG pane we draw D3 circles into so they
 // stay geo-registered as the user pans/zooms.
 function addBubbleLayer(lmap, data, radiusFn, colorFn, tipFn){
-  const svg = d3.select(lmap.getPanes().overlayPane).append('svg')
-    .style('position','absolute').style('top',0).style('left',0)
-    .style('pointer-events','none')
-    .style('width','100%').style('height','100%')
-    .style('overflow','visible');
+  // Use Leaflet CircleMarker — geo-registered natively, no SVG offset issues
+  data.forEach(d => {
+    if(!d.lat || !d.lon) return;
+    const r = radiusFn(d);
+    const color = colorFn(d);
+    const marker = L.circleMarker([d.lat, d.lon], {
+      radius: r,
+      fillColor: color,
+      color: '#ffffff',
+      weight: 1.5,
+      fillOpacity: 0.78,
+      opacity: 1
+    }).addTo(lmap);
 
-  const g = svg.append('g').attr('class','leaflet-zoom-hide');
-
-  function project(d){
-    const pt = lmap.latLngToLayerPoint([d.lat, d.lon]);
-    return pt;
-  }
-
-  function redraw(){
-    const topLeft = lmap.latLngToLayerPoint(lmap.getBounds().getNorthWest());
-    g.attr('transform', `translate(${-topLeft.x},${-topLeft.y})`);
-
-    const circles = g.selectAll('circle.bubble').data(data);
-    circles.enter().append('circle')
-      .attr('class','bubble')
-      .style('pointer-events','all')
-      .merge(circles)
-      .attr('cx', d => project(d).x)
-      .attr('cy', d => project(d).y)
-      .attr('r',  d => radiusFn(d))
-      .attr('fill', d => colorFn(d))
-      .attr('fill-opacity', 0.72)
-      .attr('stroke','#fff')
-      .attr('stroke-width', 1.5)
-      .style('cursor','pointer')
-      .on('mouseover', function(e,d){ showTip(e, tipFn(d)); d3.select(this).attr('fill-opacity',0.95); })
-      .on('mouseout',  function(e,d){ hideTip(); d3.select(this).attr('fill-opacity',0.72); });
-
-    circles.exit().remove();
-  }
-
-  lmap.on('zoomend moveend', redraw);
-  redraw();
-  return {redraw};
+    marker.on('mouseover', function(e){
+      showTip(e.originalEvent, tipFn(d));
+      marker.setStyle({fillOpacity: 1.0});
+    });
+    marker.on('mouseout', function(){
+      hideTip();
+      marker.setStyle({fillOpacity: 0.78});
+    });
+  });
 }
 
 // ══════════════════════════════════════════════
